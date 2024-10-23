@@ -1,5 +1,8 @@
+from datetime import timedelta
+import re
 from typing import Dict, List
 
+import numpy as np
 import pandas as pd
 
 
@@ -8,27 +11,89 @@ def reverse_by_n_elements(lst: List[int], n: int) -> List[int]:
     Reverses the input list by groups of n elements.
     """
     # Your code goes here.
-    
-    return lst
+    result = []
+    i = 0
+    while i < len(lst):
+        group = []
 
+        for j in range(i, min(i + n, len(lst))):
+            group.append(lst[j])
+
+        for j in range(len(group) - 1, -1, -1):
+            result.append(group[j])
+        i += n
+    return result
+
+# print(reverse_by_n_elements([1, 2, 3, 4, 5, 6, 7, 8, 9], 3))
 
 def group_by_length(lst: List[str]) -> Dict[int, List[str]]:
     """
     Groups the strings by their length and returns a dictionary.
     """
     # Your code here
-    return dict
 
-def flatten_dict(nested_dict: Dict, sep: str = '.') -> Dict:
-    """
-    Flattens a nested dictionary into a single-level dictionary with dot notation for keys.
+    length_dict = {}
     
-    :param nested_dict: The dictionary object to flatten
-    :param sep: The separator to use between parent and child keys (defaults to '.')
-    :return: A flattened dictionary
-    """
-    # Your code here
-    return dict
+    for string in lst:
+        length = len(string)
+        if length not in length_dict:
+            length_dict[length] = []
+        length_dict[length].append(string)
+    
+
+    sorted_dict = dict(sorted(length_dict.items()))
+    
+
+    return sorted_dict
+
+input1 = ["apple", "bat", "car", "elephant", "dog", "bear"]
+input2 = ["one", "two", "three", "four"]
+
+# print(group_by_length(input1))
+# print(group_by_length(input2))
+
+def flatten_dict(d, parent_key='', sep='.'):
+    flattened = {}
+
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+
+        if isinstance(v, dict):
+            # Recursively flatten the nested dictionary
+            flattened.update(flatten_dict(v, new_key, sep=sep))
+        elif isinstance(v, list):
+            # Handle lists by adding index to the key
+            for idx, item in enumerate(v):
+                list_key = f"{new_key}[{idx}]"
+                if isinstance(item, dict):
+                    flattened.update(flatten_dict(item, list_key, sep=sep))
+                else:
+                    flattened[list_key] = item
+        else:
+            # Assign the value to the final key
+            flattened[new_key] = v
+
+    return flattened
+
+data = {
+    "road": {
+        "name": "Highway 1",
+        "length": 350,
+        "sections": [
+            {
+                "id": 1,
+                "condition": {
+                    "pavement": "good",
+                    "traffic": "moderate"
+                }
+            }
+        ]
+    }
+}
+
+# print(flatten_dict(data))
+
+
 
 def unique_permutations(nums: List[int]) -> List[List[int]]:
     """
@@ -38,7 +103,30 @@ def unique_permutations(nums: List[int]) -> List[List[int]]:
     :return: List of unique permutations
     """
     # Your code here
-    pass
+    def backtrack(start, end):
+        if start == end :
+     
+            result.append(nums[:])
+        for i in  range(start, end):
+       
+            if i >  start and nums[i] == nums[start]:
+                continue
+   
+            nums[start], nums[i] = nums[i], nums[start]
+     
+            backtrack(start + 1, end)
+
+            nums[start],  nums[i] = nums[i], nums[start]
+
+    result = []
+    nums.sort()  
+    backtrack(0, len(nums))
+    return result
+
+input_list = [1, 1, 2]
+unique_permutations = unique_permutations(input_list)
+print(unique_permutations)
+
 
 
 def find_all_dates(text: str) -> List[str]:
@@ -52,7 +140,29 @@ def find_all_dates(text: str) -> List[str]:
     Returns:
     List[str]: A list of valid dates in the formats specified.
     """
-    pass
+    date_patterns = [
+        r'\b\d{2}-\d{2}-\d{4}\b',  
+        r'\b\d{2}/\d{2}/\d{4}\b',  
+        r'\b\d{4}\.\d{2}\.\d{2}\b' 
+    ]
+    
+ 
+    dates = []
+    
+    for pattern in date_patterns:
+        matches = re.findall(pattern, text)
+        dates.extend(matches)
+    
+    return dates
+
+
+text = "I was born on 23-08-1994, my friend on 08/23/1994, and another one on 1994.08.23."
+valid_dates = find_all_dates(text)
+print(valid_dates)
+
+
+
+
 
 def polyline_to_dataframe(polyline_str: str) -> pd.DataFrame:
     """
@@ -67,19 +177,35 @@ def polyline_to_dataframe(polyline_str: str) -> pd.DataFrame:
     return pd.Dataframe()
 
 
-def rotate_and_multiply_matrix(matrix: List[List[int]]) -> List[List[int]]:
-    """
-    Rotate the given matrix by 90 degrees clockwise, then multiply each element 
-    by the sum of its original row and column index before rotation.
+def rotate_matrix_90_clockwise(matrix):
+    return [list(row[::-1]) for row in zip(*matrix)]
+
+def sum_row_col_excluding_self(matrix):
+    n = len(matrix)
     
-    Args:
-    - matrix (List[List[int]]): 2D list representing the matrix to be transformed.
+    result_matrix = [[0]*n for _ in range(n)]
     
-    Returns:
-    - List[List[int]]: A new 2D list representing the transformed matrix.
-    """
-    # Your code here
-    return []
+    for i in range(n):
+        for j in range(n):
+            row_sum = sum(matrix[i]) - matrix[i][j]
+            col_sum = sum(matrix[k][j] for k in range(n)) - matrix[i][j]
+            result_matrix[i][j] = row_sum + col_sum
+    
+    return result_matrix
+
+def transform_matrix(matrix):
+    rotated_matrix = rotate_matrix_90_clockwise(matrix)
+    
+    final_matrix = sum_row_col_excluding_self(rotated_matrix)
+    
+    return final_matrix
+
+matrix = [[1, 2, 3],
+          [4, 5, 6],
+          [7, 8, 9]]
+
+result = transform_matrix(matrix)
+print(np.array(result))
 
 
 def time_check(df) -> pd.Series:
@@ -94,4 +220,44 @@ def time_check(df) -> pd.Series:
     """
     # Write your logic here
 
-    return pd.Series()
+    
+    df['start_timestamp'] = pd.to_datetime(df['startDay'] + ' ' + df['startTime'], format='%Y-%m-%d %H:%M:%S')
+    df['end_timestamp'] = pd.to_datetime(df['endDay'] + ' ' + df['endTime'], format='%Y-%m-%d %H:%M:%S')
+
+  
+    df.set_index(['id', 'id_2'], inplace=True)
+    
+ 
+    result = pd.Series(index=df.index.unique(), dtype=bool)
+    
+
+    full_week = set(range(7))  
+    full_day = timedelta(hours=24)  
+
+
+    for idx, group in df.groupby(level=['id', 'id_2']):
+       
+        covered_days = set()
+        full_coverage = True
+        
+       
+        for _, row in group.iterrows():
+            start_day = row['start_timestamp'].weekday() 
+            end_day = row['end_timestamp'].weekday()     
+            duration = row['end_timestamp'] - row['start_timestamp']
+            
+            
+            if duration < full_day:
+                full_coverage = False
+            
+          
+            covered_days.update(range(start_day, end_day + 1))
+        
+        
+        if covered_days != full_week:
+            full_coverage = False
+        
+       
+        result.loc[idx] = not full_coverage
+    
+    return result
